@@ -148,7 +148,7 @@ def listar_imoveis(tipo):
     return jsonify(imoveis)
 
 # Lista por cidade com todos os atributos
-@app.route('/imoveis/tipo/<string:cidade>', methods=['GET']) 
+@app.route('/imoveis/cidade/<string:cidade>', methods=['GET']) 
 def listar_imoveis(cidade):
     conexao = connect_db()
     cursor = conexao.cursor()
