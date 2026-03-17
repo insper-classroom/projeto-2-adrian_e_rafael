@@ -32,7 +32,7 @@ def connect_db():
 
 
 
-def close_db():
+def close_db(error=None):
     conn = g.pop('conn', None)
     if conn is not None:
         conn.close()

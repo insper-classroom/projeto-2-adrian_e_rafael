@@ -1,6 +1,9 @@
 from flask import Flask, request,jsonify
 import os 
 from createadbd import close_db,connect_db
+from dotenv import load_dotenv
+
+load_dotenv('.env')
 
 
 def criar_app():
@@ -11,9 +14,8 @@ def criar_app():
     app.teardown_appcontext(close_db)
 
     app.config.from_mapping(
-        secret_key = os.environ['SECRET_KEY']
+        secret_key = os.environ.get('SECRET_KEY')
     )
-
 
     return app
 
@@ -24,14 +26,25 @@ app = criar_app()
 def listar_imoveis():
     conexao = connect_db()
     cursor = conexao.cursor()
-    cursor.execute('SELECT * FROM imoveis')
+    cursor.execute("SELECT * FROM imoveis")
+
     rows = cursor.fetchall()
 
     imoveis = [
-        {"id": id_imovel, "logradouro": logradouro, "tipo_logradouro": tipo_logradouro, "bairro": bairro, 'cidade':cidade, 'cep':cep, 'tipo': tipo,'valor':valor,'data_aquisicao':  data} 
-        for id_imovel, logradouro, tipo_logradouro, bairro,cidade,cep,tipo,valor,data in rows
+        {
+            "id": id_imovel,
+            "logradouro": logradouro,
+            "tipo_logradouro": tipo_logradouro,
+            "bairro": bairro,
+            "cidade": cidade_item,
+            "cep": cep,
+            "tipo": tipo_item,
+            "valor": valor,
+            "data_aquisicao": data,
+        }
+        for id_imovel, logradouro, tipo_logradouro, bairro, cidade_item, cep, tipo_item, valor, data in rows
     ]
-    
+
     return jsonify(imoveis)
 
 @app.route('/imoveis', methods=['POST'])
@@ -130,42 +143,60 @@ def deletar_imovel(id):
 
 # Lista por tipo (apartamento, terreno, apartamento, etc) com todos os atributos
 @app.route('/imoveis/tipo/<string:tipo>', methods=['GET']) 
-def listar_imoveis(tipo):
+def listar_imoveis_por_tipo(tipo):
     conexao = connect_db()
     cursor = conexao.cursor()
-    
-    cursor.execute('SELECT id_imovel, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao  FROM imoveis WHERE tipo == ? ', (tipo,))
+    cursor.execute("SELECT * FROM imoveis WHERE tipo = ?", (tipo,))
     rows = cursor.fetchall()
-
-    cursor.close()
-    conexao.close()
-    
     imoveis = [
-        {"id": id_imovel, "logradouro": logradouro, "tipo_logradouro": tipo_logradouro, "bairro": bairro, 'cidade':cidade, 'cep':cep, 'tipo': tipo,'valor':valor,'data_aquisicao':  data} 
-        for id_imovel, logradouro, tipo_logradouro, bairro,cidade,cep,tipo,valor,data in rows
+        {
+            "id": id_imovel,
+            "logradouro": logradouro,
+            "tipo_logradouro": tipo_logradouro,
+            "bairro": bairro,
+            "cidade": cidade_item,
+            "cep": cep,
+            "tipo": tipo_item,
+            "valor": valor,
+            "data_aquisicao": data,
+        }
+        for id_imovel, logradouro, tipo_logradouro, bairro, cidade_item, cep, tipo_item, valor, data in rows
     ]
-    
     return jsonify(imoveis)
 
 # Lista por cidade com todos os atributos
 @app.route('/imoveis/cidade/<string:cidade>', methods=['GET']) 
-def listar_imoveis(cidade):
+def listar_imoveis_por_cidade(cidade):
     conexao = connect_db()
     cursor = conexao.cursor()
-    
-    cursor.execute('SELECT id_imovel, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao  FROM imoveis WHERE tipo == ? ', (cidade,))
+    cursor.execute("SELECT * FROM imoveis WHERE cidade = ?", (cidade,))
     rows = cursor.fetchall()
-
-    cursor.close()
-    conexao.close()
-    
     imoveis = [
-        {"id": id_imovel, "logradouro": logradouro, "tipo_logradouro": tipo_logradouro, "bairro": bairro, 'cidade':cidade, 'cep':cep, 'tipo': tipo,'valor':valor,'data_aquisicao':  data} 
-        for id_imovel, logradouro, tipo_logradouro, bairro,cidade,cep,tipo,valor,data in rows
+        {
+            "id": id_imovel,
+            "logradouro": logradouro,
+            "tipo_logradouro": tipo_logradouro,
+            "bairro": bairro,
+            "cidade": cidade_item,
+            "cep": cep,
+            "tipo": tipo_item,
+            "valor": valor,
+            "data_aquisicao": data,
+        }
+        for id_imovel, logradouro, tipo_logradouro, bairro, cidade_item, cep, tipo_item, valor, data in rows
     ]
-    
     return jsonify(imoveis)
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+def test_criar_imovel_json_invalido(client): #verifica o tiipo de texto se for text/plain (cru) retorna erro
+    response = client.post(
+        "/imoveis",
+        data="nao-json", #serve para simular o que seria enviado
+        content_type="text/plain" 
+    ) 
+
+    assert response.status_code == 400
+    assert "erro" in response.get_json()
 
