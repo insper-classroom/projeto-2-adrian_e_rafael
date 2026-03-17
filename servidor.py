@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request,jsonify
 import os 
 from createadbd import close_db,connect_db
 
@@ -19,6 +19,7 @@ def criar_app():
 
 
 app = criar_app()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
