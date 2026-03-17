@@ -253,7 +253,7 @@ def test_listar_imoveis_por_cidade(mock_conectar_banco, client):
 
     result = response.get_json()
     mock_cursor.execute.assert_called_once_with(
-        "SELECT * FROM imoveis WHERE cidade = ?",
+        "SELECT * FROM imoveis WHERE cidade = %s",
         ("Curitiba",)
     )
 
@@ -282,7 +282,7 @@ def test_listar_imoveis_por_tipo(mock_conectar_banco, client):
 
     result = response.get_json()
     mock_cursor.execute.assert_called_once_with(
-        "SELECT * FROM imoveis WHERE tipo = ?",
+        "SELECT * FROM imoveis WHERE tipo = %s",
         ("casa",)
     )
 
