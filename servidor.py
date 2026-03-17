@@ -50,7 +50,9 @@ def listar_imoveis():
 
 @app.route('/imoveis', methods=['POST'])
 def criar_imovel():
-    dados = request.get_json()
+    dados = request.get_json(silent=True)
+    if dados is None:
+        return jsonify({"erro": "JSON inválido"}), 400
     lista = ["logradouro", "tipo_logradouro", "bairro",'cidade','cep','tipo','valor','data_aquisicao']
     for x in lista:
         if x not in dados:
@@ -139,7 +141,7 @@ def deletar_imovel(id):
 def listar_imoveis_por_tipo(tipo):
     conexao = connect_db()
     cursor = conexao.cursor()
-    cursor.execute("SELECT * FROM imoveis WHERE tipo = ?", (tipo,))
+    cursor.execute("SELECT * FROM imoveis WHERE tipo = %s", (tipo,))
     rows = cursor.fetchall()
     imoveis = [
         {
@@ -162,7 +164,7 @@ def listar_imoveis_por_tipo(tipo):
 def listar_imoveis_por_cidade(cidade):
     conexao = connect_db()
     cursor = conexao.cursor()
-    cursor.execute("SELECT * FROM imoveis WHERE cidade = ?", (cidade,))
+    cursor.execute("SELECT * FROM imoveis WHERE cidade = %s", (cidade,))
     rows = cursor.fetchall()
     imoveis = [
         {
@@ -183,13 +185,4 @@ def listar_imoveis_por_cidade(cidade):
 if __name__ == '__main__':
     app.run(debug=True)
 
-def test_criar_imovel_json_invalido(client): #verifica o tiipo de texto se for text/plain (cru) retorna erro
-    response = client.post(
-        "/imoveis",
-        data="nao-json", #serve para simular o que seria enviado
-        content_type="text/plain" 
-    ) 
-
-    assert response.status_code == 400
-    assert "erro" in response.get_json()
 

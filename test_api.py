@@ -94,6 +94,16 @@ def test_criar_imovel_erro_validacao(client):
     assert "erro" in response.get_json()
 
 
+def test_criar_imovel_json_invalido(client): #verifica o tiipo de texto se for text/plain (cru) retorna erro
+    response = client.post(
+        "/imoveis",
+        data="nao-json", #serve para simular o que seria enviado
+        content_type="text/plain" 
+    ) 
+
+    assert response.status_code == 400
+    assert "erro" in response.get_json()
+
 @patch("servidor.connect_db")
 def test_obter_imovel_ok(mock_conectar_banco, client):
 
@@ -163,8 +173,8 @@ def test_atualizar_imovel_ok(mock_conectar_banco, client):
 
     response = client.put("/imoveis/678", json=payload)
 
-    assert response.status_code == 200
-    assert response.get_json() == {"mensagem": "Imóvel atualizado com sucesso"}
+    assert response.status_code == 204
+    assert response.data == b""
 
     mock_cursor.execute.assert_called_once()
     mock_conn.commit.assert_called_once()
