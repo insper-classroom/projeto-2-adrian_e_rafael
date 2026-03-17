@@ -30,6 +30,7 @@ def listar_imoveis():
 
     rows = cursor.fetchall()
 
+
     imoveis = [
         {
             "id": id_imovel,
@@ -58,13 +59,11 @@ def criar_imovel():
     cursor = conexao.cursor()
 
     cursor.execute(
-        'INSERT INTO imoveis (logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO imoveis (logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
         (dados['logradouro'], dados['tipo_logradouro'], dados['bairro'], dados['cidade'], dados['cep'], dados['tipo'], dados['valor'], dados['data_aquisicao'])
         )
     conexao.commit()
     id_novo = cursor.lastrowid
-    cursor.close()
-    conexao.close()
     return jsonify({"id": id_novo}), 201
 
 # GET /imoveis/<id>: Retorna um imóvel específico pelo ID.
@@ -73,11 +72,10 @@ def obter_imovel(id):
     conexao = connect_db()
     cursor = conexao.cursor()
 
-    cursor.execute("SELECT id_imovel, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE id_imovel = ?", (id,))
+    cursor.execute("SELECT id_imovel, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE id_imovel = %s", (id,))
     resultado = cursor.fetchone()
 
-    cursor.close()
-    conexao.close()
+
 
     if resultado is None:
         return jsonify({"erro": "Imóvel não encontrado"}), 404
@@ -110,17 +108,15 @@ def atualizar_imovel(id):
     conexao = connect_db()
     cursor = conexao.cursor()
 
-    cursor.execute("UPDATE imoveis SET logradouro = ?, tipo_logradouro = ?, bairro = ?, cidade = ?, cep = ?, tipo = ?, valor = ?, data_aquisicao = ? WHERE id_imovel = ?", (dados['logradouro'], dados['tipo_logradouro'], dados['bairro'], dados['cidade'], dados['cep'], dados['tipo'], dados['valor'], dados['data_aquisicao'], id))
+    cursor.execute("UPDATE imoveis SET logradouro = %s, tipo_logradouro = %s, bairro = %s, cidade = %s, cep = %s, tipo = %s, valor = %s, data_aquisicao = %s WHERE id_imovel = %s", (dados['logradouro'], dados['tipo_logradouro'], dados['bairro'], dados['cidade'], dados['cep'], dados['tipo'], dados['valor'], dados['data_aquisicao'], id))
     conexao.commit()
 
-    cursor.close()
-    conexao.close()
 
     linhas_mod = cursor.rowcount
     if linhas_mod == 0:
         return jsonify({"erro": "Imóvel não encontrado"}), 404
 
-    return jsonify({"mensagem": "Imóvel atualizado com sucesso"})
+    return '', 204
 
 # DELETE /imoveis/<id>: Deleta um imóvel específico.
 @app.route('/imoveis/<int:id>', methods=['DELETE'])
@@ -129,11 +125,8 @@ def deletar_imovel(id):
     conexao = connect_db()
     cursor = conexao.cursor()
 
-    cursor.execute("DELETE FROM imoveis WHERE id_imovel = ?", (id,))
+    cursor.execute("DELETE FROM imoveis WHERE id_imovel = %s", (id,))
     conexao.commit()
-
-    cursor.close()
-    conexao.close()
 
     linhas_mod = cursor.rowcount
     if linhas_mod == 0:
