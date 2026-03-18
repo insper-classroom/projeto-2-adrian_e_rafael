@@ -119,7 +119,7 @@ def obter_imovel(id):
 
     cursor = conexao.cursor()
 
-    cursor.execute("SELECT id_imovel, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE id_imovel = %s", (id,))
+    cursor.execute("SELECT id, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE id = %s", (id,))
     resultado = cursor.fetchone()
 
 
@@ -157,7 +157,7 @@ def atualizar_imovel(id):
 
     cursor = conexao.cursor()
 
-    cursor.execute("UPDATE imoveis SET logradouro = %s, tipo_logradouro = %s, bairro = %s, cidade = %s, cep = %s, tipo = %s, valor = %s, data_aquisicao = %s WHERE id_imovel = %s", (dados['logradouro'], dados['tipo_logradouro'], dados['bairro'], dados['cidade'], dados['cep'], dados['tipo'], dados['valor'], dados['data_aquisicao'], id))
+    cursor.execute("UPDATE imoveis SET logradouro = %s, tipo_logradouro = %s, bairro = %s, cidade = %s, cep = %s, tipo = %s, valor = %s, data_aquisicao = %s WHERE id = %s", (dados['logradouro'], dados['tipo_logradouro'], dados['bairro'], dados['cidade'], dados['cep'], dados['tipo'], dados['valor'], dados['data_aquisicao'], id))
     conexao.commit()
 
 
@@ -177,7 +177,7 @@ def deletar_imovel(id):
 
     cursor = conexao.cursor()
 
-    cursor.execute("DELETE FROM imoveis WHERE id_imovel = %s", (id,))
+    cursor.execute("DELETE FROM imoveis WHERE id = %s", (id,))
     conexao.commit()
 
     linhas_mod = cursor.rowcount
