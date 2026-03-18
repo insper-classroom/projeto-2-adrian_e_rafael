@@ -5,6 +5,44 @@ from dotenv import load_dotenv
 
 load_dotenv('.env')
 
+# Mesma fonte de validação
+CAMPO_OBRIGATORIOS = [
+    "logradouro",
+    "tipo_logradouro",
+    "bairro",
+    "cidade",
+    "cep",
+    "tipo",
+    "valor",
+    "data_aquisicao",
+]
+
+# resposta padronizada
+def resposta_erro(mensagem, status_code):
+    return jsonify({"erro": mensagem}), status_code
+
+# evita crash em conexão.cursor(), fazenfo a verificação da conexão
+def obter_conexao_ou_erro():
+    conexao = connect_db()
+    if conexao is None:
+        return None, resposta_erro("Banco de dados indisponível", 503)
+    return conexao, None
+
+# garante que json seja válido e o campo obrigatório não seja ausente
+# payload são os dados para analisar
+def validar_payload_imovel(payload):
+    if payload is None or not isinstance(payload, dict):
+        return resposta_erro("JSON inválido", 400)
+
+    faltantes = [campo for campo in CAMPO_OBRIGATORIOS if campo not in payload]
+    if faltantes:
+        return resposta_erro(
+            "Campos obrigatórios: logradouro, tipo_logradouro, bairro,cidade,cep,tipo,valor,data_aquisicao",
+            400,
+        )
+
+    return None
+
 
 def criar_app():
     
@@ -24,7 +62,10 @@ app = criar_app()
 
 @app.route('/imoveis', methods=['GET'])
 def listar_imoveis():
-    conexao = connect_db()
+    conexao, erro = obter_conexao_ou_erro() 
+    if erro is not None:
+        return erro
+
     cursor = conexao.cursor()
     cursor.execute("SELECT * FROM imoveis")
 
@@ -51,13 +92,14 @@ def listar_imoveis():
 @app.route('/imoveis', methods=['POST'])
 def criar_imovel():
     dados = request.get_json(silent=True)
-    if dados is None:
-        return jsonify({"erro": "JSON inválido"}), 400
-    lista = ["logradouro", "tipo_logradouro", "bairro",'cidade','cep','tipo','valor','data_aquisicao']
-    for x in lista:
-        if x not in dados:
-            return jsonify({"erro": "Campos obrigatórios: logradouro, tipo_logradouro, bairro,cidade,cep,tipo,valor,data_aquisicao"}), 400
-    conexao = connect_db()
+    erro_validacao = validar_payload_imovel(dados)
+    if erro_validacao is not None:
+        return erro_validacao
+
+    conexao, erro = obter_conexao_ou_erro()
+    if erro is not None:
+        return erro
+
     cursor = conexao.cursor()
 
     cursor.execute(
@@ -71,7 +113,10 @@ def criar_imovel():
 # GET /imoveis/<id>: Retorna um imóvel específico pelo ID.
 @app.route('/imoveis/<int:id>', methods=['GET'])
 def obter_imovel(id):
-    conexao = connect_db()
+    conexao, erro = obter_conexao_ou_erro()
+    if erro is not None:
+        return erro
+
     cursor = conexao.cursor()
 
     cursor.execute("SELECT id_imovel, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE id_imovel = %s", (id,))
@@ -101,13 +146,15 @@ def obter_imovel(id):
 @app.route('/imoveis/<int:id>', methods=['PUT'])
 def atualizar_imovel(id):
 
-    dados = request.get_json()
-    lista = ["logradouro", "tipo_logradouro", "bairro",'cidade','cep','tipo','valor','data_aquisicao']
-    for x in lista:
-        if x not in dados:
-            return jsonify({"erro": "Campos obrigatórios: logradouro, tipo_logradouro, bairro,cidade,cep,tipo,valor,data_aquisicao"}), 400
+    dados = request.get_json(silent=True)
+    erro_validacao = validar_payload_imovel(dados)
+    if erro_validacao is not None:
+        return erro_validacao
 
-    conexao = connect_db()
+    conexao, erro = obter_conexao_ou_erro()
+    if erro is not None:
+        return erro
+
     cursor = conexao.cursor()
 
     cursor.execute("UPDATE imoveis SET logradouro = %s, tipo_logradouro = %s, bairro = %s, cidade = %s, cep = %s, tipo = %s, valor = %s, data_aquisicao = %s WHERE id_imovel = %s", (dados['logradouro'], dados['tipo_logradouro'], dados['bairro'], dados['cidade'], dados['cep'], dados['tipo'], dados['valor'], dados['data_aquisicao'], id))
@@ -124,7 +171,10 @@ def atualizar_imovel(id):
 @app.route('/imoveis/<int:id>', methods=['DELETE'])
 def deletar_imovel(id):
 
-    conexao = connect_db()
+    conexao, erro = obter_conexao_ou_erro()
+    if erro is not None:
+        return erro
+
     cursor = conexao.cursor()
 
     cursor.execute("DELETE FROM imoveis WHERE id_imovel = %s", (id,))
@@ -139,7 +189,10 @@ def deletar_imovel(id):
 # Lista por tipo (apartamento, terreno, apartamento, etc) com todos os atributos
 @app.route('/imoveis/tipo/<string:tipo>', methods=['GET']) 
 def listar_imoveis_por_tipo(tipo):
-    conexao = connect_db()
+    conexao, erro = obter_conexao_ou_erro()
+    if erro is not None:
+        return erro
+
     cursor = conexao.cursor()
     cursor.execute("SELECT * FROM imoveis WHERE tipo = %s", (tipo,))
     rows = cursor.fetchall()
@@ -162,7 +215,10 @@ def listar_imoveis_por_tipo(tipo):
 # Lista por cidade com todos os atributos
 @app.route('/imoveis/cidade/<string:cidade>', methods=['GET']) 
 def listar_imoveis_por_cidade(cidade):
-    conexao = connect_db()
+    conexao, erro = obter_conexao_ou_erro()
+    if erro is not None:
+        return erro
+
     cursor = conexao.cursor()
     cursor.execute("SELECT * FROM imoveis WHERE cidade = %s", (cidade,))
     rows = cursor.fetchall()

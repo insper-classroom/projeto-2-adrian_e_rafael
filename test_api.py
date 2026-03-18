@@ -56,6 +56,16 @@ def test_listar_imoveis_com_dados(mock_conectar_banco, client):
 
 
 @patch("servidor.connect_db")
+def test_listar_imoveis_banco_indisponivel(mock_conectar_banco, client):
+    mock_conectar_banco.return_value = None
+
+    response = client.get("/imoveis")
+
+    assert response.status_code == 503
+    assert response.get_json() == {"erro": "Banco de dados indisponível"}
+
+
+@patch("servidor.connect_db")
 def test_criar_imovel_ok(mock_conectar_banco, client):
 
     mock_conn = MagicMock()
@@ -103,6 +113,17 @@ def test_criar_imovel_json_invalido(client): #verifica o tiipo de texto se for t
 
     assert response.status_code == 400
     assert "erro" in response.get_json()
+
+
+def test_atualizar_imovel_json_invalido(client):
+    response = client.put(
+        "/imoveis/1",
+        data="nao-json",
+        content_type="text/plain"
+    )
+
+    assert response.status_code == 400
+    assert response.get_json() == {"erro": "JSON inválido"}
 
 @patch("servidor.connect_db")
 def test_obter_imovel_ok(mock_conectar_banco, client):
