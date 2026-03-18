@@ -184,7 +184,7 @@ def deletar_imovel(id):
     if linhas_mod == 0:
         return jsonify({"erro": "Imóvel não encontrado"}), 404
 
-    return jsonify({"mensagem": "Imóvel excluído com sucesso"})
+    return '', 204
 
 # Lista por tipo (apartamento, terreno, apartamento, etc) com todos os atributos
 @app.route('/imoveis/tipo/<string:tipo>', methods=['GET']) 
