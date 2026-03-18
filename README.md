@@ -2,4 +2,4 @@
 Feito por: Adrian Camargo e Rafael Santos
 
 # Deploy
-[LINK]
+http://44.200.112.255/imoveis
